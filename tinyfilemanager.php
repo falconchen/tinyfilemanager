@@ -437,7 +437,7 @@ if (isset($_POST['ajax']) && !FM_READONLY) {
                 '${1}'.$body_content.'${3}',
                 $old_data
             );              
-            copy($file_path, str_replace('.html','.backup',$file_path).date('YmdHis').'.html');//备份
+            copy($file_path, str_replace('.html','-',$file_path).date('YmdHis').'.html');//备份
 
             
         }
