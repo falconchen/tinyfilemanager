@@ -1913,7 +1913,7 @@ if (isset($_GET['edit'])) {
 
                                 plugins: ["image imagetools code link fullscreen  wordcount  advlist autolink lists"],
                                 height: 667,
-                                toolbar:"undo redo | alignleft aligncenter alignright Bold italic| link | code ", //
+                                toolbar:"undo redo | alignleft aligncenter alignright Bold italic underline | link | code ", //
                                 valid_children : '+a[button],+button[div],-img'
 
     
