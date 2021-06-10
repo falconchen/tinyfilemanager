@@ -1844,7 +1844,7 @@ if (isset($_GET['edit'])) {
                                 
                             ?>
                             
-                            <div class="row"><a target="_blank"href="<?php echo $file_url; ?>?refresh" class="ml-3 btn btn-sm btn-outline-primary"><i class="fa fa fa-link"></i> <?php echo lng('Direct Link') ?></a></div>
+                            <div class="row"><a target="_blank"href="<?php echo $file_url; ?>?refresh" class="ml-3 btn btn-sm btn-outline-primary"><i class="fa fa fa-link"></i> <?php echo lng('Priview Link') ?></a></div>
                             
                         <?php else: //ace?>
                         <div class="btn-group js-ace-toolbar">
