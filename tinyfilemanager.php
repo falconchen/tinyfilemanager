@@ -1902,7 +1902,8 @@ if (isset($_GET['edit'])) {
                                 selector: '#rich',
                                 schema: 'html5',
                                 menubar: false,
-                                entities: "copy,174,reg,8482,trade",
+                                entity_encoding: 'raw',
+                                entities: '160,nbsp,38,amp,60,lt,62,gt',
 
                                 //allow_script_urls: true,
                                 document_base_url:'<?php echo $current_dir_url?>',
@@ -1914,7 +1915,7 @@ if (isset($_GET['edit'])) {
                                 plugins: ["image imagetools code link fullscreen  wordcount  advlist autolink lists"],
                                 height: 667,
                                 toolbar:"undo redo | alignleft aligncenter alignright Bold italic underline | link | code ", //
-                                valid_children : '+a[button],+button[div],-img'
+                                valid_children : '+td[h1],+a[button],+a[div],+button[div],-img'
 
     
                             });
