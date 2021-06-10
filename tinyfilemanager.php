@@ -227,6 +227,7 @@ $root_url = fm_clean_path($root_url);
 
 // abs path for site
 defined('FM_ROOT_URL') || define('FM_ROOT_URL', ($is_https ? 'https' : 'http') . '://' . $http_host . (!empty($root_url) ? '/' . $root_url : ''));
+// echo FM_ROOT_URL;exit;
 defined('FM_SELF_URL') || define('FM_SELF_URL', ($is_https ? 'https' : 'http') . '://' . $http_host . $_SERVER['PHP_SELF']);
 
 // logout
@@ -427,6 +428,20 @@ if (isset($_POST['ajax']) && !FM_READONLY) {
         $file_path = $path . '/' . $file;
 
         $writedata = $_POST['content'];
+        if(isset($_POST['rich']) && $_POST['rich']) {//富文本内容save
+
+            $body_content = str_replace(['<!--<script','</script>-->'],['<script',"</script>\n"],$writedata);
+            $old_data = file_get_contents($file_path);
+            $writedata = preg_replace(
+                '#(<body[^>]*>)(.*)(</body>)#iUs',
+                '${1}'.$body_content.'${3}',
+                $old_data
+            );              
+            copy($file_path, str_replace('.html','.backup',$file_path).date('YmdHis').'.html');//备份
+
+            
+        }
+
         $fd = fopen($file_path, "w");
         $write_results = @fwrite($fd, $writedata);
         fclose($fd);
@@ -1645,6 +1660,11 @@ if (isset($_GET['view'])) {
                         <b><a href="?p=<?php echo urlencode(trim(FM_PATH)) ?>&amp;edit=<?php echo urlencode($file) ?>&env=ace"
                               class="edit-file"><i class="fa fa-pencil-square-o"></i> <?php echo lng('AdvancedEditor') ?>
                             </a></b> &nbsp;
+                        
+                        <b><a href="?p=<?php echo urlencode(trim(FM_PATH)) ?>&amp;edit=<?php echo urlencode($file) ?>&env=rich"
+                            class="edit-file"><i class="fa fa-pencil-square-o"></i> <?php echo lng('TinyMCE editor') ?>
+                        </a></b> &nbsp;
+
                     <?php } ?>
                     <b><a href="?p=<?php echo urlencode(FM_PATH) ?>"><i class="fa fa-chevron-circle-left go-back"></i> <?php echo lng('Back') ?></a></b>
                 </p>
@@ -1759,12 +1779,74 @@ if (isset($_GET['edit'])) {
         $content = file_get_contents($file_path);
     }
 
+    //开启富文本编辑器
+    $isRichEditor = false;
+    $isHtml = substr($mime_type, -5 == '/html');
+    if($_GET['env'] == "rich" &&  $isHtml){
+        $isNormalEditor = false;
+        $isRichEditor = true;
+
+        $file = $_GET['edit'];
+        $file = fm_clean_path($file, false);
+        $file = str_replace('/', '', $file);
+        $file_url = FM_ROOT_URL . fm_convert_win((FM_PATH != '' ? '/' . FM_PATH : '') . '/' . $file);
+
+        $current_dir_url = FM_ROOT_URL . fm_convert_win((FM_PATH != '' ? '/' . FM_PATH : '') . '/');
+
+        
+        $css_arr = array();
+        if( preg_match_all('#<link[^>]*href=["\'](.*\.css)[^>]*>#iUs',$content,$matches)){
+            $css_arr = $matches[1];
+        }
+
+        if(preg_match('#<body[^>]*>(.*)</body>#iUs',$content,$match)){
+
+            //<link rel="stylesheet" href="assets/css/general.css" />
+
+            
+            $raw_body = $body_content = $match[1];
+            $body_content = preg_replace("/(\r\n|\n|\r|\t)/i", '', $body_content);
+            
+            // $body_content = '<p><script src="assets/js/jquery.min.js"></script> 
+            // <script src="assets/js/util.js"></script> 
+            // <script src="assets/js/main.js"></script></p>';
+
+            $body_content = preg_replace(
+                '#<script[^>]*>(.*)</script>#iUs',
+                '<!--${0}-->',
+                $body_content
+            );
+
+            $body_content = str_replace('> <','><',$body_content);
+
+
+        }else{
+            exit("没有找到body元素");
+        }
+
+    }
+    
     ?>
     <div class="path">
         <div class="row">
             <div class="col-xs-12 col-sm-5 col-lg-6 pt-1">
                 <div class="btn-toolbar" role="toolbar">
                     <?php if (!$isNormalEditor) { ?>
+                        
+                        <?php if($isRichEditor): //富文本?>
+                            <?php 
+                            /* $tiny_js_url = str_replace(
+                                 basename(__FILE__) ,'node_modules/tinymce/tinymce.min.js',FM_SELF_URL);
+                             */     
+                                
+                                printf('<script src="%s"></script>','https://cdnjs.cloudflare.com/ajax/libs/tinymce/5.8.1/tinymce.min.js');
+                                
+                                
+                            ?>
+                            
+                            <div class="row"><a target="_blank"href="<?php echo $file_url; ?>?refresh" class="ml-3 btn btn-sm btn-outline-primary"><i class="fa fa fa-link"></i> <?php echo lng('Direct Link') ?></a></div>
+                            
+                        <?php else: //ace?>
                         <div class="btn-group js-ace-toolbar">
                             <button data-cmd="none" data-option="fullscreen" class="btn btn-sm btn-outline-secondary" id="js-ace-fullscreen" title="Fullscreen"><i class="fa fa-expand" title="Fullscreen"></i></button>
                             <button data-cmd="find" class="btn btn-sm btn-outline-secondary" id="js-ace-search" title="Search"><i class="fa fa-search" title="Search"></i></button>
@@ -1776,7 +1858,9 @@ if (isset($_GET['edit'])) {
                             <select id="js-ace-theme" data-type="theme" title="Select Theme" class="btn-outline-secondary border-left-0 d-none d-lg-block"><option>-- Select Theme --</option></select>
                             <select id="js-ace-fontSize" data-type="fontSize" title="Select Font Size" class="btn-outline-secondary border-left-0 d-none d-lg-block"><option>-- Select Font Size --</option></select>
                         </div>
-                    <?php } ?>
+                    <?php endif; //end of ace
+                
+                } ?>
                 </div>
             </div>
             <div class="edit-file-actions col-xs-12 col-sm-7 col-lg-6 text-right pt-1">
@@ -1785,11 +1869,21 @@ if (isset($_GET['edit'])) {
                 <?php if ($is_text) { ?>
                     <?php if ($isNormalEditor) { ?>
                         <a title="Advanced" class="btn btn-sm btn-outline-primary" href="?p=<?php echo urlencode(trim(FM_PATH)) ?>&amp;edit=<?php echo urlencode($file) ?>&amp;env=ace"><i class="fa fa-pencil-square-o"></i> <?php echo lng('AdvancedEditor') ?></a>
+                        <?php if($isHtml):?>
+                            <a title="TinyMCE" class="btn btn-sm btn-outline-primary" href="?p=<?php echo urlencode(trim(FM_PATH)) ?>&amp;edit=<?php echo urlencode($file) ?>&amp;env=rich"><i class="fa fa-pencil-square-o"></i> <?php echo lng('TinyMCE Editor') ?></a>
+                        <?php endif;?>
                         <button type="button" class="btn btn-sm btn-outline-primary name="Save" data-url="<?php echo fm_enc($file_url) ?>" onclick="edit_save(this,'nrl')"><i class="fa fa-floppy-o"></i> Save
                         </button>
                     <?php } else { ?>
+
                         <a title="Plain Editor" class="btn btn-sm btn-outline-primary" href="?p=<?php echo urlencode(trim(FM_PATH)) ?>&amp;edit=<?php echo urlencode($file) ?>"><i class="fa fa-text-height"></i> <?php echo lng('NormalEditor') ?></a>
-                        <button type="button" class="btn btn-sm btn-outline-primary" name="Save" data-url="<?php echo fm_enc($file_url) ?>" onclick="edit_save(this,'ace')"><i class="fa fa-floppy-o"></i> <?php echo lng('Save') ?>
+                        <?php if($isRichEditor):?>
+                            <a title="Advanced" class="btn btn-sm btn-outline-primary" href="?p=<?php echo urlencode(trim(FM_PATH)) ?>&amp;edit=<?php echo urlencode($file) ?>&amp;env=ace"><i class="fa fa-pencil-square-o"></i> <?php echo lng('AdvancedEditor') ?></a>
+                        <?php elseif($isHtml):?>
+                            <a title="TinyMCE" class="btn btn-sm btn-outline-primary" href="?p=<?php echo urlencode(trim(FM_PATH)) ?>&amp;edit=<?php echo urlencode($file) ?>&amp;env=rich"><i class="fa fa-pencil-square-o"></i> <?php echo lng('TinyMCE Editor') ?></a>
+                        <?php endif;?>
+
+                        <button type="button" class="btn btn-sm btn-outline-primary" name="Save" data-url="<?php echo fm_enc($file_url) ?>" onclick="edit_save(this,'rich')"><i class="fa fa-floppy-o"></i> <?php echo lng('Save') ?>
                         </button>
                     <?php } ?>
                 <?php } ?>
@@ -1799,7 +1893,43 @@ if (isset($_GET['edit'])) {
         if ($is_text && $isNormalEditor) {
             echo '<textarea class="mt-2" id="normal-editor" rows="33" cols="120" style="width: 99.5%;">' . htmlspecialchars($content) . '</textarea>';
         } elseif ($is_text) {
-            echo '<div id="editor" contenteditable="true">' . htmlspecialchars($content) . '</div>';
+
+            if($isRichEditor){
+               
+                ?>
+                <script>
+                            tinymce.init({
+                                selector: '#rich',
+                                schema: 'html5',
+                                menubar: false,
+                                entities: "copy,174,reg,8482,trade",
+
+                                //allow_script_urls: true,
+                                document_base_url:'<?php echo $current_dir_url?>',
+
+                                
+                                content_css: <?php echo json_encode($css_arr);?>,  // includes both CSS files in header, ability to have CSS with `,` in URL
+                                
+
+                                plugins: ["image imagetools code link fullscreen  wordcount  advlist autolink lists"],
+                                height: 667,
+                                toolbar:"undo redo | alignleft aligncenter alignright Bold italic| link | code ", //
+                                valid_children : '+a[button],+button[div],-img'
+
+    
+                            });
+                            
+                </script>
+                <?php
+                //echo '<textarea id="rich">' . htmlspecialchars($body_content) . '</textarea>';
+                echo '<div class="mt-2"><textarea id="rich">' . htmlspecialchars($body_content) . '</textarea></div>';
+                // echo '<div class="mt-2"><textarea id="rich">' . htmlspecialchars($raw_body) . '</textarea></div>';
+            }else{
+                echo '<div id="editor" contenteditable="true">' . htmlspecialchars($content) . '</div>';
+            }
+            
+
+
         } else {
             fm_set_msg(lng('FILE EXTENSION HAS NOT SUPPORTED'), 'error');
         }
@@ -1809,6 +1939,7 @@ if (isset($_GET['edit'])) {
     fm_show_footer();
     exit;
 }
+
 
 // chmod (not for Windows)
 if (isset($_GET['chmod']) && !FM_READONLY && !FM_IS_WIN) {
@@ -1984,6 +2115,8 @@ $tableTheme = (FM_THEME == "dark") ? "text-white bg-dark table-dark" : "bg-white
                             <a title="<?php echo lng('CopyTo')?>..." href="?p=&amp;copy=<?php echo urlencode(trim(FM_PATH . '/' . $f, '/')) ?>"><i class="fa fa-files-o" aria-hidden="true"></i></a>
                         <?php endif; ?>
                         <a title="<?php echo lng('DirectLink')?>" href="<?php echo fm_enc(FM_ROOT_URL . (FM_PATH != '' ? '/' . FM_PATH : '') . '/' . $f . '/') ?>" target="_blank"><i class="fa fa-link" aria-hidden="true"></i></a>
+
+                        
                     </td>
                 </tr>
                 <?php
@@ -2049,7 +2182,14 @@ $tableTheme = (FM_THEME == "dark") ? "text-white bg-dark table-dark" : "bg-white
                                href="?p=<?php echo urlencode(FM_PATH) ?>&amp;copy=<?php echo urlencode(trim(FM_PATH . '/' . $f, '/')) ?>"><i class="fa fa-files-o"></i></a>
                         <?php endif; ?>
                         <a title="<?php echo lng('DirectLink') ?>" href="<?php echo fm_enc(FM_ROOT_URL . (FM_PATH != '' ? '/' . FM_PATH : '') . '/' . $f) ?>" target="_blank"><i class="fa fa-link"></i></a>
+                        <?php //var_dump((FM_ROOT_URL . (FM_PATH != '' ? '/' . FM_PATH : '') . '/' . $f)); //debug?>
                         <a title="<?php echo lng('Download') ?>" href="?p=<?php echo urlencode(FM_PATH) ?>&amp;dl=<?php echo urlencode($f) ?>"><i class="fa fa-download"></i></a>
+
+                        <?php if (in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), array('html'))): ?>
+
+                        <a class="btn btn-sm btn-link  text-light py-0 pl-0 ml-1" title="<?php echo lng('Edit in TinyMCE') ?>" href="?p=<?php echo urlencode(FM_PATH) ?>&amp;edit=<?php echo urlencode($f) ?>&env=rich"><i>TinyMCE Editor <span class="fa fa-chevron-circle-right"></span></i></a>
+                        <?php endif;?>
+                        
                     </td>
                 </tr>
                 <?php
@@ -3803,10 +3943,19 @@ $isStickyNavBar = $sticky_navbar ? 'navbar-fixed' : 'navbar-normal';
     function toast(txt) { var x = document.getElementById("snackbar");x.innerHTML=txt;x.className = "show";setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000); }
     //Save file
     function edit_save(e, t) {
-        var n = "ace" == t ? editor.getSession().getValue() : document.getElementById("normal-editor").value;
+
+        if(t == 'rich') {
+            var n = tinyMCE.get("rich").getContent();
+        }else{
+            var n = "ace" == t ? editor.getSession().getValue() : document.getElementById("normal-editor").value;
+        }
+        
+
+        
         if (n) {
             if(true){
-                var data = {ajax: true, content: n, type: 'save'};
+                var data = {ajax: true, content: n, type: 'save',rich: t=='rich'};
+                
 
                 $.ajax({
                     type: "POST",
@@ -3938,7 +4087,7 @@ $isStickyNavBar = $sticky_navbar ? 'navbar-fixed' : 'navbar-normal';
         });
     });
 </script>
-<?php if (isset($_GET['edit']) && isset($_GET['env']) && FM_EDIT_FILE):
+<?php if (isset($_GET['edit']) && isset($_GET['env']) && $_GET['env'] =='ace' && FM_EDIT_FILE):
         $ext = "javascript";
         $ext = pathinfo($_GET["edit"], PATHINFO_EXTENSION);
         ?>
