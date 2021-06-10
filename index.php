@@ -429,8 +429,9 @@ if (isset($_POST['ajax']) && !FM_READONLY) {
 
         $writedata = $_POST['content'];
         if(isset($_POST['rich']) && $_POST['rich']) {//富文本内容save
-
-            $body_content = str_replace(['<!--<script','</script>-->'],['<script',"</script>\n"],$writedata);
+            
+            $body_content = str_replace(['<!--<script','</script>-->','> </'],['<script',"</script>\n",'></'],$writedata);
+            
             $old_data = file_get_contents($file_path);
             $writedata = preg_replace(
                 '#(<body[^>]*>)(.*)(</body>)#iUs',
@@ -1797,6 +1798,11 @@ if (isset($_GET['edit'])) {
         $css_arr = array();
         if( preg_match_all('#<link[^>]*href=["\'](.*\.css)[^>]*>#iUs',$content,$matches)){
             $css_arr = $matches[1];
+            foreach($css_arr as $k=>$css) {
+                if( strpos($css ,'noscript.css')!==false ) {
+                    unset($css_arr[$k]);
+                }
+            }
         }
 
         if(preg_match('#<body[^>]*>(.*)</body>#iUs',$content,$match)){
@@ -1901,9 +1907,9 @@ if (isset($_GET['edit'])) {
                             tinymce.init({
                                 selector: '#rich',
                                 schema: 'html5',
-                                menubar: false,
+                                //menubar: false,
                                 entity_encoding: 'raw',
-                                entities: '160,nbsp,38,amp,60,lt,62,gt',
+                                
 
                                 //allow_script_urls: true,
                                 document_base_url:'<?php echo $current_dir_url?>',
@@ -1914,8 +1920,12 @@ if (isset($_GET['edit'])) {
 
                                 plugins: ["image imagetools code link fullscreen  wordcount  advlist autolink lists"],
                                 height: 667,
-                                toolbar:"undo redo | alignleft aligncenter alignright Bold italic underline | link | code ", //
-                                valid_children : '+td[h1],+a[button],+a[div],+button[div],-img'
+                                toolbar:"undo redo | alignleft aligncenter alignright Bold italic underline |image link | code ", //
+
+                                forced_root_block : "",
+                                entities: '160,nbsp,38,amp,60,lt,62,gt',
+                                convert_newlines_to_brs: false,
+                                valid_children : '+a[button],+a[div],+button[div]'
 
     
                             });
@@ -3946,10 +3956,12 @@ $isStickyNavBar = $sticky_navbar ? 'navbar-fixed' : 'navbar-normal';
     function edit_save(e, t) {
 
         if(t == 'rich') {
-            var n = tinyMCE.get("rich").getContent();
+            var n = tinyMCE.get("rich").getContent({ format: "html" });
+            
         }else{
             var n = "ace" == t ? editor.getSession().getValue() : document.getElementById("normal-editor").value;
         }
+        
         
 
         
