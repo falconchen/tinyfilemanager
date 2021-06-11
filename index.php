@@ -1662,10 +1662,11 @@ if (isset($_GET['view'])) {
                               class="edit-file"><i class="fa fa-pencil-square-o"></i> <?php echo lng('AdvancedEditor') ?>
                             </a></b> &nbsp;
                         
+                        <?php if (substr($mime_type,-5) == '/html') :?>
                         <b><a href="?p=<?php echo urlencode(trim(FM_PATH)) ?>&amp;edit=<?php echo urlencode($file) ?>&env=rich"
                             class="edit-file"><i class="fa fa-pencil-square-o"></i> <?php echo lng('TinyMCE editor') ?>
                         </a></b> &nbsp;
-
+                        <?php endif;?>
                     <?php } ?>
                     <b><a href="?p=<?php echo urlencode(FM_PATH) ?>"><i class="fa fa-chevron-circle-left go-back"></i> <?php echo lng('Back') ?></a></b>
                 </p>
@@ -1782,7 +1783,7 @@ if (isset($_GET['edit'])) {
 
     //开启富文本编辑器
     $isRichEditor = false;
-    $isHtml = substr($mime_type, -5 == '/html');
+    $isHtml = substr($mime_type, -5) == '/html';
     if($_GET['env'] == "rich" &&  $isHtml){
         $isNormalEditor = false;
         $isRichEditor = true;
