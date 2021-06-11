@@ -1851,7 +1851,7 @@ if (isset($_GET['edit'])) {
                                 
                             ?>
                             
-                            <div class="row"><a target="_blank"href="<?php echo $file_url; ?>?refresh" class="ml-3 btn btn-sm btn-outline-primary"><i class="fa fa fa-link"></i> <?php echo lng('Preview Link') ?></a>請保存後查看修改效果</div>
+                            <div class="row"><a target="_blank"href="<?php echo $file_url; ?>?refresh" class="ml-3 btn btn-sm btn-outline-primary"><i class="fa fa fa-link"></i> <?php echo lng('Preview Link') ?></a><span class="text-secondary d-inline-block mt-1 ml-1">請保存後查看修改效果</span></div>
                             
                         <?php else: //ace?>
                         <div class="btn-group js-ace-toolbar">
