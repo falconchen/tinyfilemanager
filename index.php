@@ -1888,9 +1888,14 @@ if (isset($_GET['edit'])) {
                         <?php elseif($isHtml):?>
                             <a title="TinyMCE" class="btn btn-sm btn-outline-primary" href="?p=<?php echo urlencode(trim(FM_PATH)) ?>&amp;edit=<?php echo urlencode($file) ?>&amp;env=rich"><i class="fa fa-pencil-square-o"></i> <?php echo lng('TinyMCE Editor') ?></a>
                         <?php endif;?>
+                        
+                        <?php if($isRichEditor):?>
+                            <button type="button" class="btn btn-sm btn-outline-primary" name="Save" data-url="<?php echo fm_enc($file_url) ?>" onclick="edit_save(this,'rich')"><i class="fa fa-floppy-o"></i> <?php echo lng('Save') ?>
+                            </button>
+                        <?php else:?>
+                            <button type="button" class="btn btn-sm btn-outline-primary" name="Save" data-url="<?php echo fm_enc($file_url) ?>" onclick="edit_save(this,'ace')"><i class="fa fa-floppy-o"></i> <?php echo lng('Save') ?>
+                        <?php endif;?>
 
-                        <button type="button" class="btn btn-sm btn-outline-primary" name="Save" data-url="<?php echo fm_enc($file_url) ?>" onclick="edit_save(this,'rich')"><i class="fa fa-floppy-o"></i> <?php echo lng('Save') ?>
-                        </button>
                     <?php } ?>
                 <?php } ?>
             </div>
