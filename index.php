@@ -1906,6 +1906,7 @@ if (isset($_GET['edit'])) {
                 <script>
                             tinymce.init({
                                 selector: '#rich',
+                                branding: false,
                                 schema: 'html5',
                                 //menubar: false,
                                 entity_encoding: 'raw',
