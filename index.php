@@ -1797,7 +1797,7 @@ if (isset($_GET['edit'])) {
 
         
         $css_arr = array();
-        if( preg_match_all('#<link[^>]*href=["\'](.*\.css)[^>]*>#iUs',$content,$matches)){
+        if( preg_match_all('#<link[^>]*href=["\'](.*\.css)[^>]*>#iU',$content,$matches)){
             $css_arr = $matches[1];
             foreach($css_arr as $k=>$css) {
                 if( strpos($css ,'noscript.css')!==false ) {
