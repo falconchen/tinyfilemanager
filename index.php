@@ -1932,7 +1932,7 @@ if (isset($_GET['edit'])) {
                                 forced_root_block : "",
                                 entities: '160,nbsp,38,amp,60,lt,62,gt',
                                 convert_newlines_to_brs: false,
-                                valid_children : '+a[button],+a[div],+button[div]'
+                                valid_children : '+a[button],+a[div],+button[div],+h1[p]'
 
     
                             });
